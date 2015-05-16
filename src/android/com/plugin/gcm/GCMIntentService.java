@@ -112,8 +112,18 @@ public class GCMIntentService extends GCMBaseIntentService {
 		
 		SharedPreferences.Editor editor = sharedPref.edit();
 		Boolean foundConv = false;
+
+		JSONObject current_message = new JSONObject();
+		try {
+			current_message.put("convId",convId);
+			current_message.put("message",message);
+			current_message.put("senderName",senderFirstName + senderLastName);
+			past_messages.put(current_message);
+		} catch (JSONException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
-		past_messages.put(message);
 		
 		
 		if(past_conversations.length() > 0){
@@ -165,6 +175,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 		
 		Notification.InboxStyle inboxStyleNotif = new Notification.InboxStyle();		
 		if(xMessages > 1){
+			Boolean showSenderName = true;
 			if(yConv > 1){
 				notifTitle = xMessages + " Messages from "+yConv + " Conversations";
 			} else {
@@ -172,16 +183,27 @@ public class GCMIntentService extends GCMBaseIntentService {
 			}
 			
 			Integer addedLines = 0;
-			for(Integer i=0;i<past_messages.length() && i<5;i++){
-				String message_elem = "";
+			String lastSenderName = null;
+			for(Integer i=past_messages.length() - 1;i>=0 && i>past_messages.length()-6;i--){
+				JSONObject message_elem = new JSONObject();
 				try {
-					message_elem = past_messages.getString(i);
+					message_elem = past_messages.getJSONObject(i);
+					if(showSenderName == true){
+						String currentSenderName = message_elem.getString("senderName");
+						if(currentSenderName.equals(lastSenderName)){
+							inboxStyleNotif.addLine(message_elem.getString("message"));
+						} else {
+							inboxStyleNotif.addLine(message_elem.getString("senderName")+": "+message_elem.getString("message"));
+							lastSenderName = message_elem.getString("senderName");
+						}
+					} else {
+						inboxStyleNotif.addLine(message_elem.getString("message"));
+					}				
+					addedLines++;
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
-				inboxStyleNotif.addLine(message_elem);
-				addedLines++;
+				}				
 			}
 			Integer otherMessages = xMessages - addedLines;
 			if(otherMessages > 0){

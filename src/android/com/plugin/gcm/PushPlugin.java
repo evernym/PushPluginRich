@@ -16,7 +16,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author awysocki
@@ -27,10 +30,12 @@ public class PushPlugin extends CordovaPlugin {
 
 	public static final String REGISTER = "register";
 	public static final String UNREGISTER = "unregister";
+	public static final String READCONVERSATION = "readConversation";
 	public static final String EXIT = "exit";
 
 	private static CordovaWebView gWebView;
 	private static String gECB;
+	private static String gConversationsPnHas;
 	private static String gSenderID;
 	private static Bundle gCachedExtras = null;
     private static boolean gForeground = false;
@@ -61,6 +66,7 @@ public class PushPlugin extends CordovaPlugin {
 				Log.v(TAG, "execute: jo=" + jo.toString());
 
 				gECB = (String) jo.get("ecb");
+				gConversationsPnHas = (String) jo.get("gConversationsPnHas");
 				gSenderID = (String) jo.get("senderID");
 
 				Log.v(TAG, "execute: ECB=" + gECB + " senderID=" + gSenderID);
@@ -87,6 +93,40 @@ public class PushPlugin extends CordovaPlugin {
 			Log.v(TAG, "UNREGISTER");
 			result = true;
 			callbackContext.success();
+		} else if(READCONVERSATION.equals(action)){
+			try {
+				JSONObject conversation = data.getJSONObject(0);
+				String conversationID = conversation.getString("convId");
+				SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("notification_details",Context.MODE_PRIVATE);
+				SharedPreferences.Editor editor = sharedPref.edit();
+				JSONArray past_conversations = new JSONArray(sharedPref.getString("past_conversations","[]"));
+				JSONArray past_messages = new JSONArray(sharedPref.getString("past_messages","[]"));
+				JSONArray new_past_conversations = new JSONArray();
+				JSONArray new_past_messages = new JSONArray();
+				if(past_conversations.length() > 0){
+					for(Integer i=0;i<past_conversations.length();i++){
+						JSONObject conv = past_conversations.getJSONObject(i);
+						if(!conv.getString("id").equals(conversationID)){
+							new_past_conversations.put(conv);
+						}
+					}
+				}
+				if(past_messages.length() > 0){
+					for(Integer i=0;i<past_messages.length();i++){
+						JSONObject message = past_messages.getJSONObject(i);
+						if(!message.getString("id").equals(conversationID)){
+							new_past_messages.put(message);
+						}
+					}
+				}
+				editor.putString("past_conversations", new_past_conversations.toString());
+				editor.putString("past_messages", new_past_messages.toString());
+				editor.commit();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			Log.v(TAG, "READCONVERSATION");
 		} else {
 			result = false;
 			Log.e(TAG, "Invalid action : " + action);
@@ -106,6 +146,27 @@ public class PushPlugin extends CordovaPlugin {
 		if (gECB != null && gWebView != null) {
 			gWebView.sendJavascript(_d);
 		}
+	}
+
+	/*
+	 * Sends a json object to the client as parameter to a method which is defined in gConversationsPnHas.
+	 */
+	public void sendConversationPnHas() {
+		SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("notification_details",Context.MODE_PRIVATE);
+		JSONArray past_conversations = new JSONArray();
+		try {
+			past_conversations = new JSONArray(sharedPref.getString("past_conversations","[]"));
+		} catch (JSONException e) {
+		    e.printStackTrace();
+		}
+		if(past_conversations.length() > 0){
+			String _d = "javascript:" + gConversationsPnHas + "(" + past_conversations.toString() + ")";
+			Log.v(TAG, "sendJavascript: " + _d);
+
+			if (gConversationsPnHas != null && gWebView != null) {
+				gWebView.sendJavascript(_d);
+			}
+		}		
 	}
 
 	/*
@@ -142,16 +203,12 @@ public class PushPlugin extends CordovaPlugin {
         super.onResume(multitasking);
         gForeground = true; 
         clearNotifs();
+        sendConversationPnHas();
     }
     
     public void clearNotifs(){
     	final NotificationManager notificationManager = (NotificationManager) cordova.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
     	notificationManager.cancelAll();
-    	SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("notification_details",Context.MODE_PRIVATE);
-    	SharedPreferences.Editor editor = sharedPref.edit();
-    	editor.putString("past_conversations", "[]");
-		editor.putString("past_messages", "[]");
-		editor.commit();
     }
 
     @Override
