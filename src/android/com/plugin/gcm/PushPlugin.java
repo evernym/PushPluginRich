@@ -2,9 +2,12 @@ package com.plugin.gcm;
 
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+
 import com.google.android.gcm.GCMRegistrar;
+
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
@@ -131,14 +134,24 @@ public class PushPlugin extends CordovaPlugin {
     public void onPause(boolean multitasking) {
         super.onPause(multitasking);
         gForeground = false;
-        final NotificationManager notificationManager = (NotificationManager) cordova.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.cancelAll();
+        clearNotifs();
     }
 
     @Override
     public void onResume(boolean multitasking) {
         super.onResume(multitasking);
-        gForeground = true;
+        gForeground = true; 
+        clearNotifs();
+    }
+    
+    public void clearNotifs(){
+    	final NotificationManager notificationManager = (NotificationManager) cordova.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+    	notificationManager.cancelAll();
+    	SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("notification_details",Context.MODE_PRIVATE);
+    	SharedPreferences.Editor editor = sharedPref.edit();
+    	editor.putString("past_conversations", "[]");
+		editor.putString("past_messages", "[]");
+		editor.commit();
     }
 
     @Override

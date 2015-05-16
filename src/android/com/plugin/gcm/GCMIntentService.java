@@ -1,5 +1,6 @@
 package com.plugin.gcm;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -9,6 +10,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
@@ -81,6 +83,116 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 	public void createNotification(Context context, Bundle extras)
 	{
+		Integer unreadMessages=1;
+		String senderFirstName="";
+		String senderLastName="";
+		String notifTitle = extras.getString("title");
+		String convId = extras.getString("cnvrsnId");
+		String message = extras.getString("message");
+		try{
+			JSONObject mainObject = new JSONObject(extras.getString("pushNotifReqData"));
+			unreadMessages = mainObject.getInt("unreadMsgs");
+			senderFirstName = mainObject.getString("senderFirstname");
+			senderLastName = mainObject.getString("senderLastname");
+		} catch (JSONException e){
+			
+		}	
+		
+		
+		SharedPreferences sharedPref = context.getSharedPreferences("notification_details",Context.MODE_PRIVATE);
+
+		JSONArray past_conversations = new JSONArray();
+		JSONArray past_messages = new JSONArray();
+		try {
+			past_conversations = new JSONArray(sharedPref.getString("past_conversations","[]"));
+			past_messages = new JSONArray(sharedPref.getString("past_messages","[]"));
+		} catch (JSONException e) {
+		    e.printStackTrace();
+		}
+		
+		SharedPreferences.Editor editor = sharedPref.edit();
+		Boolean foundConv = false;
+		
+		past_messages.put(message);
+		
+		
+		if(past_conversations.length() > 0){
+			for(Integer i=0;i<past_conversations.length();i++){
+				try{
+					JSONObject conversation = past_conversations.getJSONObject(i);
+					if(conversation.getString("id").equals(convId)){
+						foundConv = true;
+						conversation.put("unread_messages", unreadMessages);
+						past_conversations.put(i, conversation);
+						break;
+					}					
+				} catch(JSONException e){
+					
+				}				
+			}			
+		}
+		
+		if(!foundConv){
+			//add new conversation
+			JSONObject conversation = new JSONObject();
+			try{
+				conversation.put("unread_messages", unreadMessages);
+				conversation.put("id", convId);
+				past_conversations.put(conversation);				
+			} catch (JSONException e) {
+				
+			}
+									
+		}
+
+		editor.putString("past_conversations", past_conversations.toString());
+		editor.putString("past_messages", past_messages.toString());
+		editor.commit();		
+		
+		
+		Integer xMessages = 0;
+		Integer yConv = past_conversations.length();
+		if(yConv>0){
+			for(Integer i=0;i<yConv;i++){
+				try{
+					JSONObject conversation = past_conversations.getJSONObject(i);
+					xMessages += conversation.getInt("unread_messages");		
+				} catch(JSONException e){
+					
+				}				
+			}	
+		}
+		
+		Notification.InboxStyle inboxStyleNotif = new Notification.InboxStyle();		
+		if(xMessages > 1){
+			if(yConv > 1){
+				notifTitle = xMessages + " Messages from "+yConv + " Conversations";
+			} else {
+				notifTitle = xMessages + " Messages from "+senderFirstName + " " + senderLastName;
+			}
+			
+			Integer addedLines = 0;
+			for(Integer i=0;i<past_messages.length() && i<5;i++){
+				String message_elem = "";
+				try {
+					message_elem = past_messages.getString(i);
+				} catch (JSONException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				inboxStyleNotif.addLine(message_elem);
+				addedLines++;
+			}
+			Integer otherMessages = xMessages - addedLines;
+			if(otherMessages > 0){
+				inboxStyleNotif.setSummaryText("+ "+otherMessages+" more");
+			}			
+		}
+		
+		
+		
+		
+ 		
 		NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 		String appName = getAppName(this);
 
@@ -98,19 +210,25 @@ public class GCMIntentService extends GCMBaseIntentService {
 			} catch (NumberFormatException e) {}
 		}
 		
-		NotificationCompat.Builder mBuilder =
-			new NotificationCompat.Builder(context)
+		Notification.Builder mBuilder =
+			new Notification.Builder(context)
 				.setDefaults(defaults)
 				.setSmallIcon(context.getApplicationInfo().icon)
 				.setWhen(System.currentTimeMillis())
-				.setContentTitle(extras.getString("title"))
-				.setTicker(extras.getString("title"))
+				.setContentTitle(notifTitle)
+				.setTicker(notifTitle)
 				.setContentIntent(contentIntent)
 				.setAutoCancel(true);
-
-		String message = extras.getString("message");
+				
 		if (message != null) {
-			mBuilder.setContentText(message);
+			if(xMessages < 2){
+				mBuilder.setContentText(message)
+				.setStyle(new Notification.BigTextStyle()
+	            .bigText(message));
+			} else {
+				mBuilder.setContentText(notifTitle)
+				.setStyle(inboxStyleNotif);
+			}
 		} else {
 			mBuilder.setContentText("<missing message content>");
 		}
