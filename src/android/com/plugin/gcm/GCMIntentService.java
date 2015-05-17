@@ -172,6 +172,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 				}				
 			}	
 		}
+		extras.putInt("noOfConversationsinNotification", yConv);
 		
 		Notification.InboxStyle inboxStyleNotif = new Notification.InboxStyle();		
 		if(xMessages > 1){
