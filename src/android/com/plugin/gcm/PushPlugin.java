@@ -94,7 +94,7 @@ public class PushPlugin extends CordovaPlugin {
 			Log.v(TAG, "UNREGISTER");
 			result = true;
 			callbackContext.success();
-		} else if(READCONVERSATION.equals(action)){
+		} else if(READCONVERSATION.equals(action) && PushPlugin.isInForeground()){
 			try {
 				for(Integer j=0;j<data.length();j++){
 					String conversationID = data.getString(j);
