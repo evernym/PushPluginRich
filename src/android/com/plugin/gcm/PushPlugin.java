@@ -31,6 +31,7 @@ public class PushPlugin extends CordovaPlugin {
 	public static final String REGISTER = "register";
 	public static final String UNREGISTER = "unregister";
 	public static final String READCONVERSATION = "readConversation";
+	public static final String REMOVE_STORED_NOTIFS = "removeStoredNotifs";
 	public static final String EXIT = "exit";
 
 	private static CordovaWebView gWebView;
@@ -114,7 +115,7 @@ public class PushPlugin extends CordovaPlugin {
 				if(past_messages.length() > 0){
 					for(Integer i=0;i<past_messages.length();i++){
 						JSONObject message = past_messages.getJSONObject(i);
-						if(!message.getString("id").equals(conversationID)){
+						if(!message.getString("convId").equals(conversationID)){
 							new_past_messages.put(message);
 						}
 					}
@@ -127,6 +128,8 @@ public class PushPlugin extends CordovaPlugin {
 				e.printStackTrace();
 			}
 			Log.v(TAG, "READCONVERSATION");
+		} else if(REMOVE_STORED_NOTIFS.equals(action)) {
+			clearStoredNotifs();
 		} else {
 			result = false;
 			Log.e(TAG, "Invalid action : " + action);
@@ -208,7 +211,15 @@ public class PushPlugin extends CordovaPlugin {
     
     public void clearNotifs(){
     	final NotificationManager notificationManager = (NotificationManager) cordova.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
-    	notificationManager.cancelAll();
+    	notificationManager.cancelAll();    	
+    }
+
+    public void clearStoredNotifs(){
+    	SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("notification_details",Context.MODE_PRIVATE);
+    	SharedPreferences.Editor editor = sharedPref.edit();
+    	editor.putString("past_conversations", "[]");
+		editor.putString("past_messages", "[]");
+		editor.commit();
     }
 
     @Override

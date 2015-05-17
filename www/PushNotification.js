@@ -81,6 +81,23 @@ PushNotification.prototype.readConversation = function(successCallback, errorCal
     cordova.exec(successCallback, errorCallback, "PushPlugin", "readConversation", [{convId: convId}]);
 };
 
+// Call this to remove stored notifications, eg. logout (only for android)
+PushNotification.prototype.removeStoredNotifs = function(successCallback, errorCallback) {
+    if (errorCallback == null) { errorCallback = function() {}}
+
+    if (typeof errorCallback != "function")  {
+        console.log("PushNotification.removeStoredNotifs failure: failure parameter not a function");
+        return
+    }
+
+    if (typeof successCallback != "function") {
+        console.log("PushNotification.removeStoredNotifs failure: success callback parameter must be a function");
+        return
+    }
+
+    cordova.exec(successCallback, errorCallback, "PushPlugin", "removeStoredNotifs", []);
+};
+
 //-------------------------------------------------------------------
 
 if(!window.plugins) {
