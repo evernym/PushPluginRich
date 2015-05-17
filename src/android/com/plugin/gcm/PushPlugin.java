@@ -96,33 +96,34 @@ public class PushPlugin extends CordovaPlugin {
 			callbackContext.success();
 		} else if(READCONVERSATION.equals(action)){
 			try {
-				JSONObject conversation = data.getJSONObject(0);
-				String conversationID = conversation.getString("convId");
-				SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("notification_details",Context.MODE_PRIVATE);
-				SharedPreferences.Editor editor = sharedPref.edit();
-				JSONArray past_conversations = new JSONArray(sharedPref.getString("past_conversations","[]"));
-				JSONArray past_messages = new JSONArray(sharedPref.getString("past_messages","[]"));
-				JSONArray new_past_conversations = new JSONArray();
-				JSONArray new_past_messages = new JSONArray();
-				if(past_conversations.length() > 0){
-					for(Integer i=0;i<past_conversations.length();i++){
-						JSONObject conv = past_conversations.getJSONObject(i);
-						if(!conv.getString("id").equals(conversationID)){
-							new_past_conversations.put(conv);
+				for(Integer j=0;j<data.length();j++){
+					String conversationID = data.getString(j);
+					SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("notification_details",Context.MODE_PRIVATE);
+					SharedPreferences.Editor editor = sharedPref.edit();
+					JSONArray past_conversations = new JSONArray(sharedPref.getString("past_conversations","[]"));
+					JSONArray past_messages = new JSONArray(sharedPref.getString("past_messages","[]"));
+					JSONArray new_past_conversations = new JSONArray();
+					JSONArray new_past_messages = new JSONArray();
+					if(past_conversations.length() > 0){
+						for(Integer i=0;i<past_conversations.length();i++){
+							JSONObject conv = past_conversations.getJSONObject(i);
+							if(!conv.getString("id").equals(conversationID)){
+								new_past_conversations.put(conv);
+							}
 						}
 					}
-				}
-				if(past_messages.length() > 0){
-					for(Integer i=0;i<past_messages.length();i++){
-						JSONObject message = past_messages.getJSONObject(i);
-						if(!message.getString("convId").equals(conversationID)){
-							new_past_messages.put(message);
+					if(past_messages.length() > 0){
+						for(Integer i=0;i<past_messages.length();i++){
+							JSONObject message = past_messages.getJSONObject(i);
+							if(!message.getString("convId").equals(conversationID)){
+								new_past_messages.put(message);
+							}
 						}
 					}
-				}
-				editor.putString("past_conversations", new_past_conversations.toString());
-				editor.putString("past_messages", new_past_messages.toString());
-				editor.commit();
+					editor.putString("past_conversations", new_past_conversations.toString());
+					editor.putString("past_messages", new_past_messages.toString());
+					editor.commit();
+				}				
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
