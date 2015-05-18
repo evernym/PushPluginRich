@@ -84,6 +84,7 @@ public class PushPlugin extends CordovaPlugin {
 			if ( gCachedExtras != null) {
 				Log.v(TAG, "sending cached extras");
 				sendExtras(gCachedExtras);
+				sendConversationPnHas(getApplicationContext());
 				gCachedExtras = null;
 			}
 
@@ -124,7 +125,7 @@ public class PushPlugin extends CordovaPlugin {
 					editor.putString("past_messages", new_past_messages.toString());
 					editor.commit();
 				}
-				sendConversationPnHas();			
+				sendConversationPnHas(getApplicationContext());			
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -156,8 +157,8 @@ public class PushPlugin extends CordovaPlugin {
 	/*
 	 * Sends a json object to the client as parameter to a method which is defined in gConversationsPnHas.
 	 */
-	public void sendConversationPnHas() {
-		SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("notification_details",Context.MODE_PRIVATE);
+	public static void sendConversationPnHas(Context context) {
+		SharedPreferences sharedPref = context.getSharedPreferences("notification_details",Context.MODE_PRIVATE);
 		JSONArray past_conversations = new JSONArray();
 		try {
 			past_conversations = new JSONArray(sharedPref.getString("past_conversations","[]"));
@@ -194,6 +195,7 @@ public class PushPlugin extends CordovaPlugin {
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
         gForeground = true;
+        clearNotifs();
     }
 
 	@Override
@@ -208,7 +210,7 @@ public class PushPlugin extends CordovaPlugin {
         super.onResume(multitasking);
         gForeground = true; 
         clearNotifs();
-        sendConversationPnHas();
+        sendConversationPnHas(getApplicationContext());
     }
     
     public void clearNotifs(){
