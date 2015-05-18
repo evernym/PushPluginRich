@@ -86,6 +86,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 		Integer unreadMessages=1;
 		String senderFirstName="";
 		String senderLastName="";
+		String senderName="";
 		String notifTitle = extras.getString("title");
 		String convId = extras.getString("cnvrsnId");
 		String message = extras.getString("message");
@@ -94,6 +95,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 			unreadMessages = mainObject.getInt("unreadMsgs");
 			senderFirstName = mainObject.getString("senderFirstname");
 			senderLastName = mainObject.getString("senderLastname");
+			senderName = senderFirstName + " " + senderLastName;
 		} catch (JSONException e){
 			
 		}	
@@ -117,7 +119,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 		try {
 			current_message.put("convId",convId);
 			current_message.put("message",message);
-			current_message.put("senderName",senderFirstName + senderLastName);
+			current_message.put("senderName",senderName);
 			past_messages.put(current_message);
 		} catch (JSONException e1) {
 			// TODO Auto-generated catch block
@@ -177,10 +179,11 @@ public class GCMIntentService extends GCMBaseIntentService {
 		Notification.InboxStyle inboxStyleNotif = new Notification.InboxStyle();		
 		if(xMessages > 1){
 			Boolean showSenderName = true;
+			message = senderName + ": " + message;
 			if(yConv > 1){
 				notifTitle = xMessages + " Messages from "+yConv + " Conversations";
 			} else {
-				notifTitle = xMessages + " Messages from "+senderFirstName + " " + senderLastName;
+				notifTitle = xMessages + " Messages from "+senderName;
 			}
 			
 			Integer addedLines = 0;
@@ -249,7 +252,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 				.setStyle(new Notification.BigTextStyle()
 	            .bigText(message));
 			} else {
-				mBuilder.setContentText(notifTitle)
+				mBuilder.setContentText(message)
 				.setStyle(inboxStyleNotif);
 			}
 		} else {
