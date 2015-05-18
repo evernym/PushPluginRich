@@ -94,7 +94,7 @@ public class PushPlugin extends CordovaPlugin {
 			Log.v(TAG, "UNREGISTER");
 			result = true;
 			callbackContext.success();
-		} else if(READCONVERSATION.equals(action) && PushPlugin.isInForeground()){
+		} else if(READCONVERSATION.equals(action)){
 			try {
 				for(Integer j=0;j<data.length();j++){
 					String conversationID = data.getString(j);
@@ -123,7 +123,8 @@ public class PushPlugin extends CordovaPlugin {
 					editor.putString("past_conversations", new_past_conversations.toString());
 					editor.putString("past_messages", new_past_messages.toString());
 					editor.commit();
-				}				
+				}
+				sendConversationPnHas();			
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
