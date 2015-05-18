@@ -176,7 +176,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 		}
 		extras.putInt("noOfConversationsinNotification", yConv);
 		
-		Notification.InboxStyle inboxStyleNotif = new Notification.InboxStyle();		
+		NotificationCompat.InboxStyle inboxStyleNotif = new NotificationCompat.InboxStyle();		
 		if(xMessages > 1){
 			Boolean showSenderName = true;
 			message = senderName + ": " + message;
@@ -236,20 +236,21 @@ public class GCMIntentService extends GCMBaseIntentService {
 			} catch (NumberFormatException e) {}
 		}
 		
-		Notification.Builder mBuilder =
-			new Notification.Builder(context)
+		NotificationCompat.Builder mBuilder =
+			new NotificationCompat.Builder(context)
 				.setDefaults(defaults)
 				.setSmallIcon(context.getApplicationInfo().icon)
 				.setWhen(System.currentTimeMillis())
 				.setContentTitle(notifTitle)
 				.setTicker(notifTitle)
 				.setContentIntent(contentIntent)
+				.setPriority(NotificationCompat.PRIORITY_HIGH)
 				.setAutoCancel(true);
 				
 		if (message != null) {
 			if(xMessages < 2){
 				mBuilder.setContentText(message)
-				.setStyle(new Notification.BigTextStyle()
+				.setStyle(new NotificationCompat.BigTextStyle()
 	            .bigText(message));
 			} else {
 				mBuilder.setContentText(message)
@@ -277,7 +278,6 @@ public class GCMIntentService extends GCMBaseIntentService {
 		}
 		
 		mNotificationManager.notify((String) appName, notId, mBuilder.build());
-        PushPlugin.sendConversationPnHas(getApplicationContext());
 	}
 	
 	private static String getAppName(Context context)
