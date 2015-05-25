@@ -203,6 +203,7 @@ public class PushPlugin extends CordovaPlugin {
         super.onPause(multitasking);
         gForeground = false;
         clearNotifs();
+        clearNotifTimes();
     }
 
     @Override
@@ -210,12 +211,32 @@ public class PushPlugin extends CordovaPlugin {
         super.onResume(multitasking);
         gForeground = true; 
         clearNotifs();
+        clearNotifTimes();
         sendConversationPnHas(getApplicationContext());
     }
     
     public void clearNotifs(){
     	final NotificationManager notificationManager = (NotificationManager) cordova.getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
     	notificationManager.cancelAll();    	
+    }
+
+    public void clearNotifTimes(){
+    	SharedPreferences sharedPref = getApplicationContext().getSharedPreferences("notification_details",Context.MODE_PRIVATE);
+    	SharedPreferences.Editor editor = sharedPref.edit();
+    	JSONArray past_conversations = new JSONArray();
+		try {
+			past_conversations = new JSONArray(sharedPref.getString("past_conversations","[]"));
+			for(Integer i=0;i<past_conversations.length();i++){
+				JSONObject conversation = past_conversations.getJSONObject(i);
+				conversation.remove("firstMessageTime");
+				conversation.remove("secondMessageTime");
+				past_conversations.put(i, conversation);
+			}
+		} catch (JSONException e) {
+		    e.printStackTrace();
+		}
+		editor.putString("past_conversations", past_conversations.toString());
+		editor.commit();
     }
 
     public void clearStoredNotifs(){

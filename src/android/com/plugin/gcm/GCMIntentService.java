@@ -128,14 +128,35 @@ public class GCMIntentService extends GCMBaseIntentService {
 		}
 		
 		
-		
+		Boolean shouldRing = true;
+		long currentTime = System.currentTimeMillis();
 		if(past_conversations.length() > 0){
 			for(Integer i=0;i<past_conversations.length();i++){
 				try{
 					JSONObject conversation = past_conversations.getJSONObject(i);
 					if(conversation.getString("id").equals(convId)){
 						foundConv = true;
-						conversation.put("unread_messages", unreadMessages);
+						conversation.put("unread_messages", unreadMessages);						
+						long firstMessageTime;
+						long secondMessageTime;
+						try{
+							firstMessageTime = conversation.getLong("firstMessageTime");
+							try{
+								secondMessageTime = conversation.getLong("secondMessageTime");
+								if(currentTime - firstMessageTime < 600000){
+									shouldRing = false;
+								} else {
+									conversation.put("firstMessageTime", secondMessageTime);
+									conversation.put("secondMessageTime", currentTime);
+								}
+							} catch(JSONException f){
+								//secondMessageTime doesn't exist
+								conversation.put("secondMessageTime", currentTime);
+							}
+						} catch(JSONException f){
+							//firstMessageTime doesn't exist
+							conversation.put("firstMessageTime", currentTime);
+						}
 						past_conversations.put(i, conversation);
 						break;
 					}					
@@ -151,6 +172,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 			try{
 				conversation.put("unread_messages", unreadMessages);
 				conversation.put("id", convId);
+				conversation.put("firstMessageTime", currentTime);
 				past_conversations.put(conversation);				
 			} catch (JSONException e) {
 				
@@ -278,7 +300,12 @@ public class GCMIntentService extends GCMBaseIntentService {
 			Log.e(TAG, "Number format exception - Error parsing Notification ID" + e.getMessage());
 		}
 		
-		mNotificationManager.notify((String) appName, notId, mBuilder.build());
+		Notification currNotif = mBuilder.build();
+		if(!shouldRing){
+			currNotif.defaults = 0;
+			currNotif.defaults |= Notification.DEFAULT_LIGHTS;	
+		}
+		mNotificationManager.notify((String) appName, notId, currNotif);
 	}
 	
 	private static String getAppName(Context context)
