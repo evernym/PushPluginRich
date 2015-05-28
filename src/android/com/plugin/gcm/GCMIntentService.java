@@ -99,7 +99,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 			if(senderFirstName != null && !senderFirstName.isEmpty()){
 				senderName = senderFirstName;
 				if(senderLastName != null && !senderLastName.isEmpty()){
-					senderName = senderName + " " + senderLastName;
+					senderName = senderName + " " + senderLastName.substring(0, 1);
 				}
 			}
 		} catch (JSONException e){
