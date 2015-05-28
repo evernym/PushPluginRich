@@ -206,13 +206,11 @@ public class GCMIntentService extends GCMBaseIntentService {
 		
 		NotificationCompat.InboxStyle inboxStyleNotif = new NotificationCompat.InboxStyle();		
 		if(xMessages > 1){
-			Boolean showSenderName = true;
 			message = senderName + ": " + message;
 			if(yConv > 1){
-				notifTitle = xMessages + " Messages from "+yConv + " Conversations";
+				notifTitle = xMessages + " Messages in "+yConv + " Conversations";
 			} else {
-				notifTitle = xMessages + " Messages from "+senderName;
-				showSenderName = false;
+				notifTitle = xMessages + " Messages in 1 conversation";
 			}
 			
 			Integer addedLines = 0;
@@ -220,11 +218,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 				JSONObject message_elem = new JSONObject();
 				try {
 					message_elem = past_messages.getJSONObject(i);
-					if(showSenderName == true){
-						inboxStyleNotif.addLine(message_elem.getString("senderName")+": "+message_elem.getString("message"));
-					} else {
-						inboxStyleNotif.addLine(message_elem.getString("message"));
-					}				
+					inboxStyleNotif.addLine(message_elem.getString("senderName")+": "+message_elem.getString("message"));
 					addedLines++;
 				} catch (JSONException e) {
 					// TODO Auto-generated catch block
