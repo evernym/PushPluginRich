@@ -97,7 +97,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 			senderFirstName = mainObject.optString("senderFirstname");
 			senderLastName = mainObject.optString("senderLastname");
 			if(senderFirstName != null && !senderFirstName.isEmpty()){
-				senderName = senderFirstname;
+				senderName = senderFirstName;
 				if(senderLastName != null && !senderLastName.isEmpty()){
 					senderName = senderName + " " + senderLastName;
 				}
