@@ -94,9 +94,14 @@ public class GCMIntentService extends GCMBaseIntentService {
 		try{
 			JSONObject mainObject = new JSONObject(extras.getString("pushNotifReqData"));
 			unreadMessages = mainObject.getInt("unreadMsgs");
-			senderFirstName = mainObject.getString("senderFirstname");
-			senderLastName = mainObject.getString("senderLastname");
-			senderName = senderFirstName + " " + senderLastName;
+			senderFirstName = mainObject.optString("senderFirstname");
+			senderLastName = mainObject.optString("senderLastname");
+			if(senderFirstName != null && !senderFirstName.isEmpty()){
+				senderName = senderFirstname;
+				if(senderLastName != null && !senderLastName.isEmpty()){
+					senderName = senderName + " " + senderLastName;
+				}
+			}
 		} catch (JSONException e){
 			
 		}	
@@ -207,22 +212,16 @@ public class GCMIntentService extends GCMBaseIntentService {
 				notifTitle = xMessages + " Messages from "+yConv + " Conversations";
 			} else {
 				notifTitle = xMessages + " Messages from "+senderName;
+				showSenderName = false;
 			}
 			
 			Integer addedLines = 0;
-			String lastSenderName = null;
 			for(Integer i=past_messages.length() - 1;i>=0 && i>past_messages.length()-6;i--){
 				JSONObject message_elem = new JSONObject();
 				try {
 					message_elem = past_messages.getJSONObject(i);
 					if(showSenderName == true){
-						String currentSenderName = message_elem.getString("senderName");
-						if(currentSenderName.equals(lastSenderName)){
-							inboxStyleNotif.addLine(message_elem.getString("message"));
-						} else {
-							inboxStyleNotif.addLine(message_elem.getString("senderName")+": "+message_elem.getString("message"));
-							lastSenderName = message_elem.getString("senderName");
-						}
+						inboxStyleNotif.addLine(message_elem.getString("senderName")+": "+message_elem.getString("message"));
 					} else {
 						inboxStyleNotif.addLine(message_elem.getString("message"));
 					}				
