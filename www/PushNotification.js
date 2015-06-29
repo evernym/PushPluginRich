@@ -98,6 +98,21 @@ PushNotification.prototype.removeStoredNotifs = function(successCallback, errorC
     cordova.exec(successCallback, errorCallback, "PushPlugin", "removeStoredNotifs", []);
 };
 
+//To find out if IOS PN are enabled or not
+PushNotification.prototype.isEnabled = function(successCallback, errorCallback){
+    if (errorCallback == null) { errorCallback = function() {}}
+
+    if (typeof errorCallback != "function")  {
+        console.log("PushNotification.isEnabled failure: failure parameter not a function");
+        return
+    }
+    if (typeof successCallback != "function") {
+        console.log("PushNotification.isEnabled failure: success callback parameter must be a function");
+        return
+    }
+    cordova.exec(successCallback, errorCallback, "PushPlugin", "isEnabled", []);
+};
+
 //-------------------------------------------------------------------
 
 if(!window.plugins) {
