@@ -113,6 +113,22 @@ PushNotification.prototype.isEnabled = function(successCallback, errorCallback){
     cordova.exec(successCallback, errorCallback, "PushPlugin", "isEnabled", []);
 };
 
+
+//To open ios app settings
+PushNotification.prototype.openSettings = function(successCallback, errorCallback){
+    if (errorCallback == null) { errorCallback = function() {}}
+
+    if (typeof errorCallback != "function")  {
+        console.log("PushNotification.openSettings failure: failure parameter not a function");
+        return
+    }
+    if (typeof successCallback != "function") {
+        console.log("PushNotification.openSettings failure: success callback parameter must be a function");
+        return
+    }
+    cordova.exec(successCallback, errorCallback, "PushPlugin", "openSettings", []);
+};
+
 //-------------------------------------------------------------------
 
 if(!window.plugins) {
