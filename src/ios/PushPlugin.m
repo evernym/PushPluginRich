@@ -148,7 +148,7 @@
     {
         enabled = [application isRegisteredForRemoteNotifications];
     } else {
-        UIRemoteNotificationType types = [[application currentUserNotificationSettings] types];
+        UIRemoteNotificationType types = [application enabledRemoteNotificationTypes];
         enabled = types & UIRemoteNotificationTypeAlert;
     }
     
